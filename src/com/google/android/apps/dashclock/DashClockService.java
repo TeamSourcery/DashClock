@@ -96,7 +96,8 @@ public class DashClockService extends Service implements ExtensionManager.OnChan
     @Override
     public void onExtensionsChanged() {
         mUpdateHandler.removeCallbacks(mUpdateAllWidgetsRunnable);
-        mUpdateHandler.postDelayed(mUpdateAllWidgetsRunnable, 2000);
+        mUpdateHandler.postDelayed(mUpdateAllWidgetsRunnable,
+                ExtensionHost.UPDATE_COLLAPSE_TIME_MILLIS);
     }
 
     private Runnable mUpdateAllWidgetsRunnable = new Runnable() {
@@ -141,10 +142,12 @@ public class DashClockService extends Service implements ExtensionManager.OnChan
         String updateExtension = intent.getStringExtra(EXTRA_COMPONENT_NAME);
         if (!TextUtils.isEmpty(updateExtension)) {
             ComponentName cn = ComponentName.unflattenFromString(updateExtension);
-            mExtensionHost.execute(cn, ExtensionHost.UPDATE_OPERATIONS.get(reason));
+            mExtensionHost.execute(cn, ExtensionHost.UPDATE_OPERATIONS.get(reason),
+                    ExtensionHost.UPDATE_COLLAPSE_TIME_MILLIS, reason);
         } else {
             for (ComponentName cn : mExtensionManager.getActiveExtensionNames()) {
-                mExtensionHost.execute(cn, ExtensionHost.UPDATE_OPERATIONS.get(reason));
+                mExtensionHost.execute(cn, ExtensionHost.UPDATE_OPERATIONS.get(reason),
+                        ExtensionHost.UPDATE_COLLAPSE_TIME_MILLIS, reason);
             }
         }
     }

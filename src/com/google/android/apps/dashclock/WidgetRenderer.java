@@ -37,6 +37,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -59,6 +60,7 @@ public class WidgetRenderer {
     private static final String TAG = LogUtils.makeLogTag(WidgetRenderer.class);
 
     public static final String PREF_CLOCK_SHORTCUT = "pref_clock_shortcut";
+    public static final String PREF_HIDE_SETTINGS = "pref_hide_settings";
 
     private static class CollapsedExtensionSlot {
         int targetId;
@@ -99,6 +101,7 @@ public class WidgetRenderer {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         Intent clockIntent = AppChooserPreference.getIntentValue(
                 sp.getString(PREF_CLOCK_SHORTCUT, null), Utils.getDefaultClockIntent(context));
+        boolean hideSettings = sp.getBoolean(PREF_HIDE_SETTINGS, false);
 
         // Load data from extensions
         List<ExtensionWithData> mExtensions = extensionManager.getActiveExtensionsWithData();
@@ -162,7 +165,8 @@ public class WidgetRenderer {
 
             if (aggressiveCentering) {
                 // Forced/aggressive centering rules
-                rv.setViewVisibility(R.id.settings_button_center_displacement, View.VISIBLE);
+                rv.setViewVisibility(R.id.settings_button_center_displacement,
+                        hideSettings ? View.GONE : View.VISIBLE);
                 rv.setViewPadding(R.id.clock_row, 0, 0, 0, 0);
                 rv.setInt(R.id.clock_target, "setGravity", Gravity.CENTER_HORIZONTAL);
 
@@ -187,12 +191,14 @@ public class WidgetRenderer {
                 rv.setInt(R.id.clock_row, "setGravity",
                         clockCentered ? Gravity.CENTER_HORIZONTAL : Gravity.LEFT);
                 rv.setViewVisibility(R.id.settings_button_center_displacement,
-                        clockCentered ? View.INVISIBLE : View.GONE);
+                        hideSettings ? View.GONE : (clockCentered ? View.INVISIBLE : View.GONE));
 
                 int clockLeftMargin = res.getDimensionPixelSize(R.dimen.clock_left_margin);
                 rv.setViewPadding(R.id.clock_row, clockCentered ? 0 : clockLeftMargin, 0, 0, 0);
             }
 
+            rv.setViewVisibility(R.id.settings_button,
+                    hideSettings ? View.GONE : View.VISIBLE);
             rv.setViewVisibility(R.id.widget_divider,
                     (visibleExtensions > 0) ? View.VISIBLE : View.GONE);
             rv.setViewVisibility(R.id.collapsed_extensions_container,
@@ -334,6 +340,8 @@ public class WidgetRenderer {
      */
     private static class WidgetRemoveViewsFactory implements RemoteViewsService.RemoteViewsFactory,
             ExtensionManager.OnChangeListener {
+
+        private Handler mHandler  = new Handler();
         private Context mContext;
         private ExtensionManager mExtensionManager;
         private List<ExtensionWithData> mVisibleExtensions = new ArrayList<ExtensionWithData>();
@@ -347,19 +355,29 @@ public class WidgetRenderer {
 
         @Override
         public void onExtensionsChanged() {
-            List<ExtensionWithData> ewds = mExtensionManager.getActiveExtensionsWithData();
-            mVisibleExtensions.clear();
-            for (ExtensionWithData ewd : ewds) {
-                if (ewd.latestData.visible()) {
-                    mVisibleExtensions.add(ewd);
-                }
-            }
-
-            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(mContext);
-            int[] appWidgetIds = appWidgetManager.getAppWidgetIds(
-                    new ComponentName(mContext, WidgetProvider.class));
-            appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.expanded_extensions);
+            mHandler.removeCallbacks(mHandleExtensionsChanged);
+            mHandler.postDelayed(mHandleExtensionsChanged,
+                    ExtensionHost.UPDATE_COLLAPSE_TIME_MILLIS);
         }
+
+        private Runnable mHandleExtensionsChanged = new Runnable() {
+            @Override
+            public void run() {
+                List<ExtensionWithData> ewds = mExtensionManager.getActiveExtensionsWithData();
+                mVisibleExtensions.clear();
+                for (ExtensionWithData ewd : ewds) {
+                    if (ewd.latestData.visible()) {
+                        mVisibleExtensions.add(ewd);
+                    }
+                }
+
+                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(mContext);
+                int[] appWidgetIds = appWidgetManager.getAppWidgetIds(
+                        new ComponentName(mContext, WidgetProvider.class));
+                appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds,
+                        R.id.expanded_extensions);
+            }
+        };
 
         public void onCreate() {
             // Since we reload the cursor in onDataSetChanged() which gets called immediately after

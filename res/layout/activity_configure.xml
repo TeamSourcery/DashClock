@@ -19,13 +19,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#fff">
+    android:background="#ff000000">
 
     <LinearLayout
         android:id="@+id/actionbar_container"
         android:layout_width="match_parent"
         android:layout_height="?android:actionBarSize"
-        android:background="@drawable/ab_background"
+        android:background="@color/extension_list_item_color"
         android:orientation="horizontal"
         android:baselineAligned="false" />
 

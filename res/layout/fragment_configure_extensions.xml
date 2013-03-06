@@ -51,7 +51,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="28sp"
-                    android:textColor="#09c"
+                    android:textColor="#ffffffff"
                     android:fontFamily="sans-serif-thin"
                     android:text="@string/welcome_title" />
 
@@ -76,7 +76,7 @@
                     android:text="@string/add_extension"
                     android:textStyle="bold"
                     android:textAllCaps="true"
-                    android:textColor="#fff" />
+                    android:textColor="#ffffffff" />
             </LinearLayout>
         </FrameLayout>
     </ScrollView>

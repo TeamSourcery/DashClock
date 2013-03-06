@@ -19,6 +19,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:minHeight="?android:listPreferredItemHeightSmall">
+    
+    <View android:id="@+id/divider1" 
+        android:layout_width="match_parent" 
+        android:layout_height="1.0px"
+        android:background="#ffffffff" />
 
     <com.google.android.apps.dashclock.ui.DragGripView
         android:id="@+id/drag_handle"
@@ -28,7 +33,7 @@
         android:paddingStart="16dp"
         android:paddingTop="12dp"
         android:paddingBottom="12dp"
-        android:color="#2333" />
+        android:color="@color/extension_list_item_color" />
     <!-- TODO: accessibility for dragging and removing -->
 
     <LinearLayout android:layout_width="match_parent"
@@ -74,6 +79,7 @@
                 android:layout_alignStart="@android:id/text1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/white"
                 android:textAppearance="?android:textAppearanceSmall" />
 
         </RelativeLayout>
